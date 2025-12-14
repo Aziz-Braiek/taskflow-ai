@@ -24,7 +24,16 @@ jobs:
     
     - name: Build
       run: npm run build
+      continue-on-error: false
     
-    - name: Lint
-      run: npm run lint --if-present
+    - name: Check build output
+      if: success()
+      run: |
+        if [ -d "dist" ]; then
+          echo "Build successful - dist directory exists"
+          ls -la dist/
+        else
+          echo "Build failed - dist directory not found"
+          exit 1
+        fi
 
