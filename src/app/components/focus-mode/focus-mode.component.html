@@ -1,0 +1,86 @@
+<div class="focus-mode-container">
+  <div class="focus-header">
+    <button (click)="exitFocusMode()" class="btn-exit">← Exit Focus Mode</button>
+    <h1>Focus Mode</h1>
+  </div>
+
+  <div *ngIf="loading()" class="loading">
+    <p>Loading tasks...</p>
+  </div>
+
+  <div *ngIf="!loading() && currentTask()" class="focus-content">
+    <!-- Task Selection -->
+    <div class="task-selector">
+      <label>Current Task:</label>
+      <select
+        [value]="currentTask()?.id"
+        (change)="onTaskChange($any($event.target).value)"
+        class="task-select"
+      >
+        <option *ngFor="let task of tasks()" [value]="task.id">
+          {{ task.title }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Current Task Display -->
+    <div class="current-task-card">
+      <h2>{{ currentTask()!.title }}</h2>
+      <p class="task-description">{{ currentTask()!.description }}</p>
+      <div class="task-meta">
+        <span class="badge priority-{{ currentTask()!.priority }}">{{ currentTask()!.priority }}</span>
+        <span class="badge category">{{ currentTask()!.category }}</span>
+      </div>
+    </div>
+
+    <!-- Pomodoro Timer -->
+    <div class="pomodoro-container">
+      <div class="pomodoro-phase">{{ getPhaseLabel() }}</div>
+      <div class="pomodoro-timer" [class.work]="phase() === 'work'" [class.break]="phase() !== 'work'">
+        {{ formatTime(timeLeft()) }}
+      </div>
+      <div class="pomodoro-controls">
+        <button
+          *ngIf="!isRunning()"
+          (click)="startTimer()"
+          class="btn btn-primary btn-large"
+        >
+          Start
+        </button>
+        <button
+          *ngIf="isRunning()"
+          (click)="pauseTimer()"
+          class="btn btn-secondary btn-large"
+        >
+          Pause
+        </button>
+        <button
+          (click)="resetTimer()"
+          class="btn btn-secondary"
+        >
+          Reset
+        </button>
+      </div>
+      <div class="pomodoro-stats">
+        <span>Completed: {{ pomodoroCount() }} pomodoros</span>
+      </div>
+    </div>
+
+    <!-- Task Actions -->
+    <div class="task-actions">
+      <button
+        (click)="completeTask()"
+        class="btn btn-success"
+        [disabled]="currentTask()!.status === 'completed'"
+      >
+        ✓ Complete Task
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading() && tasks().length === 0" class="empty-state">
+    <p>No pending tasks available. Create a task to start focusing!</p>
+    <button (click)="navigateToNewTask()" class="btn btn-primary">Create Task</button>
+  </div>
+</div>
+

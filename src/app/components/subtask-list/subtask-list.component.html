@@ -1,0 +1,64 @@
+<div class="subtasks-container">
+  <div class="subtasks-header">
+    <h4>Subtasks</h4>
+    <div class="subtasks-progress">
+      <span class="progress-text">
+        {{ getCompletedCount() }}/{{ subtasks.length }} completed
+      </span>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="getCompletionPercentage()"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subtasks-list">
+    <div *ngFor="let subtask of subtasks" class="subtask-item" [class.completed]="subtask.completed">
+      <input
+        *ngIf="canEdit"
+        type="checkbox"
+        [checked]="subtask.completed"
+        (change)="onToggleSubtask(subtask.id)"
+        class="subtask-checkbox"
+      />
+      <span *ngIf="!canEdit" class="subtask-checkbox-readonly" [class.checked]="subtask.completed">✓</span>
+      <span class="subtask-title" [class.completed-text]="subtask.completed">
+        {{ subtask.title }}
+      </span>
+      <button
+        *ngIf="canEdit"
+        (click)="onDeleteSubtask(subtask.id)"
+        class="subtask-delete"
+        title="Delete subtask"
+      >
+        ×
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="canEdit" class="add-subtask">
+    <button
+      *ngIf="!showAddForm()"
+      (click)="showAddForm.set(true)"
+      class="btn-add-subtask"
+    >
+      + Add Subtask
+    </button>
+    <div *ngIf="showAddForm()" class="add-subtask-form">
+      <input
+        type="text"
+        [value]="newSubtaskTitle()"
+        (input)="newSubtaskTitle.set($any($event.target).value)"
+        (keyup.enter)="onAddSubtask()"
+        (keyup.escape)="showAddForm.set(false); newSubtaskTitle.set('')"
+        placeholder="Enter subtask title..."
+        class="subtask-input"
+        autofocus
+      />
+      <div class="subtask-form-actions">
+        <button (click)="onAddSubtask()" class="btn btn-primary btn-sm">Add</button>
+        <button (click)="showAddForm.set(false); newSubtaskTitle.set('')" class="btn btn-secondary btn-sm">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+

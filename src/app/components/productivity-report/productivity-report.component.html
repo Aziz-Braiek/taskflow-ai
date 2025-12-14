@@ -1,0 +1,129 @@
+<div class="report-container">
+  <div class="report-header">
+    <h1>Productivity Report</h1>
+    <div class="report-controls">
+      <div class="control-group">
+        <label for="period">Report Period:</label>
+        <select id="period" [value]="reportPeriod()" (change)="reportPeriod.set($any($event.target).value); onPeriodChange()">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="date">Date:</label>
+        <input type="date" id="date" [value]="selectedDate()" (change)="selectedDate.set($any($event.target).value); loadData()">
+      </div>
+      <div class="export-buttons">
+        <button (click)="exportAsCSV()" class="btn btn-secondary">Export CSV</button>
+        <button (click)="exportAsJSON()" class="btn btn-secondary">Export JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading()" class="loading">
+    <p>Generating report...</p>
+  </div>
+
+  <div *ngIf="!loading() && metrics()" class="report-content">
+    <!-- Summary Section -->
+    <div class="report-section">
+      <h2>Summary</h2>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-label">Productivity Score</div>
+          <div class="summary-value">{{ metrics()!.productivityScore.toFixed(0) }}</div>
+          <div class="summary-trend" [class.excellent]="metrics()!.productivityScore >= 80" [class.good]="metrics()!.productivityScore >= 60 && metrics()!.productivityScore < 80" [class.needs-improvement]="metrics()!.productivityScore < 60">
+            {{ metrics()!.productivityScore >= 80 ? 'Excellent' : metrics()!.productivityScore >= 60 ? 'Good' : 'Needs Improvement' }}
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Tasks Completed</div>
+          <div class="summary-value">{{ getCompletedTasksCount() }}</div>
+          <div class="summary-sub">out of {{ tasks().length }} total</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Completion Rate</div>
+          <div class="summary-value">{{ metrics()!.completionRate.toFixed(1) }}%</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">On-Time Rate</div>
+          <div class="summary-value">{{ metrics()!.onTimeCompletionRate.toFixed(1) }}%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Period Tasks -->
+    <div class="report-section">
+      <h2>Tasks for Selected Period</h2>
+      <div class="tasks-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Due Date</th>
+              <th>Completed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of getPeriodTasks()">
+              <td>{{ task.title }}</td>
+              <td>{{ task.category }}</td>
+              <td><span class="badge priority-{{ task.priority }}">{{ task.priority }}</span></td>
+              <td><span class="badge status-{{ task.status }}">{{ task.status }}</span></td>
+              <td>{{ formatDate(task.dueDate) }}</td>
+              <td>{{ task.completedAt ? formatDate(task.completedAt) : '-' }}</td>
+            </tr>
+            <tr *ngIf="getPeriodTasks().length === 0">
+              <td colspan="6" class="empty-row">No tasks for this period</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="report-section">
+      <h2>Category Performance</h2>
+      <div class="category-breakdown">
+        <div *ngFor="let category of getCategoryKeys()" class="category-item">
+          <div class="category-header">
+            <span class="category-name">{{ category }}</span>
+            <span class="category-rate">{{ metrics()!.categoryRates[category].rate.toFixed(1) }}%</span>
+          </div>
+          <div class="category-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="metrics()!.categoryRates[category].rate"></div>
+            </div>
+          </div>
+          <div class="category-stats">
+            {{ metrics()!.categoryRates[category].completed }} completed out of {{ metrics()!.categoryRates[category].total }} total
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="report-section">
+      <h2>Key Insights</h2>
+      <div class="insights-list">
+        <div class="insight-item">
+          <strong>Task Velocity:</strong> You completed {{ metrics()!.taskVelocity.toFixed(1) }} tasks per day on average.
+        </div>
+        <div class="insight-item">
+          <strong>Average Duration:</strong> Tasks take {{ formatTime(metrics()!.averageTaskDuration) }} on average.
+        </div>
+        <div class="insight-item" *ngIf="metrics()!.peakProductivityHours.length > 0">
+          <strong>Peak Hours:</strong> You're most productive at {{ getPeakHoursFormatted() }}.
+        </div>
+        <div class="insight-item" [class.warning]="metrics()!.burnoutRisk.riskLevel !== 'low'">
+          <strong>Workload Status:</strong> {{ metrics()!.burnoutRisk.message }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

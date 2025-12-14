@@ -1,0 +1,76 @@
+<nav class="navbar" *ngIf="authService.isAuthenticated()">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <div class="logo-icon">⚡</div>
+      <h1 class="nav-title">TaskFlow AI</h1>
+    </div>
+
+    <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [class.active]="mobileMenuOpen()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="nav-content" [class.mobile-open]="mobileMenuOpen()">
+      <ul class="nav-links">
+        <li>
+          <a routerLink="/tasks" routerLinkActive="active" [routerLinkActiveOptions]="{exact: false}" (click)="closeMobileMenu()">
+            <span class="nav-icon">📋</span>
+            <span class="nav-text">Tasks</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/tasks/new" routerLinkActive="active" (click)="closeMobileMenu()">
+            <span class="nav-icon">➕</span>
+            <span class="nav-text">New Task</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/insights" routerLinkActive="active" (click)="closeMobileMenu()">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">Insights</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/focus" routerLinkActive="active" (click)="closeMobileMenu()">
+            <span class="nav-icon">🎯</span>
+            <span class="nav-text">Focus</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/kanban" routerLinkActive="active" (click)="closeMobileMenu()">
+            <span class="nav-icon">📑</span>
+            <span class="nav-text">Kanban</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/reports" routerLinkActive="active" (click)="closeMobileMenu()">
+            <span class="nav-icon">📈</span>
+            <span class="nav-text">Reports</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="nav-right">
+        <div class="online-status" [class.offline]="!isOnline()" [class.online]="isOnline()" title="Connection Status">
+          <span class="status-dot"></span>
+          <span class="status-text">{{ isOnline() ? 'Online' : 'Offline' }}</span>
+        </div>
+
+        <div class="user-menu">
+          <div class="user-avatar">
+            {{ getUserInitials() }}
+          </div>
+          <div class="user-details">
+            <span class="user-name">{{ authService.getCurrentUser()?.name }}</span>
+            <span class="user-email">{{ authService.getCurrentUser()?.email }}</span>
+          </div>
+          <button (click)="logout()" class="btn-logout" title="Logout">
+            <span class="logout-icon">🚪</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+

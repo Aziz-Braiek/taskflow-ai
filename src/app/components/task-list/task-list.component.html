@@ -1,0 +1,163 @@
+<div class="task-list-container">
+  <div class="header">
+    <h1>My Tasks</h1>
+    <div class="header-actions">
+      <div class="import-export-buttons">
+        <button (click)="exportTasks('json')" class="btn btn-secondary btn-sm">Export JSON</button>
+        <button (click)="exportTasks('csv')" class="btn btn-secondary btn-sm">Export CSV</button>
+        <label for="import-file" class="btn btn-secondary btn-sm" style="cursor: pointer; margin: 0;">
+          Import
+          <input
+            id="import-file"
+            type="file"
+            accept=".json,.csv"
+            (change)="importTasks($event)"
+            style="display: none;"
+          />
+        </label>
+      </div>
+      <a routerLink="/tasks/new" class="btn btn-primary">+ New Task</a>
+    </div>
+  </div>
+
+  <!-- Statistics -->
+  <div class="statistics">
+    <div class="stat-card">
+      <div class="stat-value">{{ statistics().total }}</div>
+      <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ statistics().pending }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ statistics().inProgress }}</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ statistics().completed }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input
+        type="text"
+        [value]="searchQuery()"
+        (input)="onSearchChange($event)"
+        placeholder="Search tasks..."
+        class="search-input"
+      />
+    </div>
+
+    <div class="filters">
+      <select [value]="statusFilter()" (change)="onStatusFilterChange($event)" class="filter-select">
+        <option value="all">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="in-progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+
+      <select [value]="categoryFilter()" (change)="onCategoryFilterChange($event)" class="filter-select">
+        <option value="all">All Categories</option>
+        <option *ngFor="let category of categories()" [value]="category">{{ category }}</option>
+      </select>
+
+      <select [value]="priorityFilter()" (change)="onPriorityFilterChange($event)" class="filter-select">
+        <option value="all">All Priorities</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+
+      <button (click)="clearFilters()" class="btn btn-secondary">Clear Filters</button>
+    </div>
+
+    <!-- Tag Filter -->
+    <div class="tag-filter-section">
+      <div class="tag-input-wrapper">
+        <input
+          type="text"
+          [value]="tagFilter()"
+          (input)="tagFilter.set($any($event.target).value)"
+          placeholder="Search tags..."
+          class="tag-input"
+        />
+        <div *ngIf="getSuggestedTags().length > 0" class="tag-suggestions">
+          <button
+            *ngFor="let tag of getSuggestedTags()"
+            (click)="toggleTag(tag); tagFilter.set('')"
+            class="tag-suggestion"
+          >
+            {{ tag }}
+          </button>
+        </div>
+      </div>
+      
+      <div *ngIf="selectedTags().length > 0" class="selected-tags">
+        <span *ngFor="let tag of selectedTags()" class="tag-badge selected">
+          {{ tag }}
+          <button (click)="toggleTag(tag)" class="tag-remove">×</button>
+        </span>
+      </div>
+
+      <div *ngIf="availableTags().length > 0 && selectedTags().length === 0" class="popular-tags">
+        <span class="tags-label">Popular tags:</span>
+        <button
+          *ngFor="let tag of availableTags().slice(0, 8)"
+          (click)="toggleTag(tag)"
+          class="tag-badge"
+        >
+          {{ tag }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading">
+    <p>Loading tasks...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error() && !loading()" class="error">
+    <p>{{ error() }}</p>
+    <button (click)="loadTasks()" class="btn btn-primary">Retry</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading() && !error() && filteredTasks().length === 0" class="empty-state">
+    <p>No tasks found. {{ tasks().length === 0 ? 'Create your first task!' : 'Try adjusting your filters.' }}</p>
+    <a *ngIf="tasks().length === 0" routerLink="/tasks/new" class="btn btn-primary">Create Task</a>
+  </div>
+
+  <!-- Task List -->
+  <div *ngIf="!loading() && !error() && filteredTasks().length > 0" class="tasks-grid">
+    <div *ngFor="let task of filteredTasks(); trackBy: trackByTaskId" class="task-card" [routerLink]="['/tasks', task.id]">
+      <div class="task-header">
+        <h3 class="task-title">{{ task.title }}</h3>
+        <span class="badge" [ngClass]="getPriorityClass(task.priority)">
+          {{ task.priority }}
+        </span>
+      </div>
+      <p class="task-description">{{ task.description }}</p>
+      <div class="task-meta">
+        <span class="task-category">{{ task.category }}</span>
+        <span class="task-status" [ngClass]="getStatusClass(task.status)">
+          {{ task.status }}
+        </span>
+      </div>
+      <div *ngIf="task.tags && task.tags.length > 0" class="task-tags">
+        <span *ngFor="let tag of task.tags" class="task-tag">{{ tag }}</span>
+      </div>
+      <div class="task-footer">
+        <span class="task-date" [class.overdue]="isOverdue(task)">
+          Due: {{ formatDate(task.dueDate) }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+

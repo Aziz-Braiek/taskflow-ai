@@ -1,0 +1,138 @@
+<div class="form-container">
+  <div class="form-header">
+    <h1>{{ isEditMode ? 'Edit Task' : 'Create New Task' }}</h1>
+    <button (click)="onCancel()" class="btn btn-secondary">Cancel</button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    <p>Loading task...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-message">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Form -->
+  <form *ngIf="!loading" [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-form">
+    <div class="form-group">
+      <label for="title">Title *</label>
+      <input
+        type="text"
+        id="title"
+        formControlName="title"
+        class="form-control"
+        [class.invalid]="isFieldInvalid('title')"
+        placeholder="Enter task title"
+      />
+      <span *ngIf="isFieldInvalid('title')" class="error-text">
+        {{ getFieldError('title') }}
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description *</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        class="form-control"
+        [class.invalid]="isFieldInvalid('description')"
+        rows="4"
+        placeholder="Enter task description"
+      ></textarea>
+      <span *ngIf="isFieldInvalid('description')" class="error-text">
+        {{ getFieldError('description') }}
+      </span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="dueDate">Due Date *</label>
+        <input
+          type="date"
+          id="dueDate"
+          formControlName="dueDate"
+          class="form-control"
+          [class.invalid]="isFieldInvalid('dueDate')"
+        />
+        <span *ngIf="isFieldInvalid('dueDate')" class="error-text">
+          {{ getFieldError('dueDate') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="priority">Priority *</label>
+        <select
+          id="priority"
+          formControlName="priority"
+          class="form-control"
+          [class.invalid]="isFieldInvalid('priority')"
+        >
+          <option *ngFor="let priority of priorities" [value]="priority">
+            {{ priority | titlecase }}
+          </option>
+        </select>
+        <span *ngIf="isFieldInvalid('priority')" class="error-text">
+          {{ getFieldError('priority') }}
+        </span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="category">Category *</label>
+        <select
+          id="category"
+          formControlName="category"
+          class="form-control"
+          [class.invalid]="isFieldInvalid('category')"
+        >
+          <option value="">Select a category</option>
+          <option *ngFor="let category of categories" [value]="category">
+            {{ category }}
+          </option>
+        </select>
+        <span *ngIf="isFieldInvalid('category')" class="error-text">
+          {{ getFieldError('category') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="status">Status *</label>
+        <select
+          id="status"
+          formControlName="status"
+          class="form-control"
+          [class.invalid]="isFieldInvalid('status')"
+        >
+          <option *ngFor="let status of statuses" [value]="status">
+            {{ status | titlecase }}
+          </option>
+        </select>
+        <span *ngIf="isFieldInvalid('status')" class="error-text">
+          {{ getFieldError('status') }}
+        </span>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="submitting || taskForm.invalid"
+      >
+        {{ submitting ? 'Saving...' : (isEditMode ? 'Update Task' : 'Create Task') }}
+      </button>
+      <button
+        type="button"
+        (click)="onCancel()"
+        class="btn btn-secondary"
+        [disabled]="submitting"
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
+

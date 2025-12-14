@@ -1,0 +1,63 @@
+{
+  "name": "taskflow-ai",
+  "version": "1.0.0",
+  "description": "An intelligent task management application built with Angular 21",
+  "author": "Your Name",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/taskflow-ai.git"
+  },
+  "keywords": [
+    "angular",
+    "task-management",
+    "productivity",
+    "ai",
+    "typescript",
+    "pwa"
+  ],
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "json-server": "json-server --watch db.json --port 3000"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "dependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "@angular/service-worker": "^21.0.0",
+    "chart.js": "^4.5.1",
+    "date-fns": "^4.1.0",
+    "ng2-charts": "^8.0.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.0.3",
+    "@angular/cli": "^21.0.3",
+    "@angular/compiler-cli": "^21.0.0",
+    "jsdom": "^27.1.0",
+    "json-server": "^1.0.0-beta.3",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

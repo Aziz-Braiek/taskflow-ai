@@ -1,0 +1,136 @@
+<div class="insights-container">
+  <div class="dashboard-header">
+    <h1>Productivity Insights</h1>
+    <div class="date-range-selector">
+      <label for="dateRange">Time Period:</label>
+      <select id="dateRange" [value]="dateRange()" (change)="dateRange.set($any($event.target).value); onDateRangeChange()">
+        <option value="7">Last 7 Days</option>
+        <option value="30">Last 30 Days</option>
+        <option value="90">Last 90 Days</option>
+        <option value="all">All Time</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="loading()" class="loading">
+    <p>Loading insights...</p>
+  </div>
+
+  <div *ngIf="!loading() && metrics()" class="dashboard-content">
+    <!-- Key Metrics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card primary">
+        <div class="metric-icon">📊</div>
+        <div class="metric-value">{{ metrics()!.productivityScore.toFixed(0) }}</div>
+        <div class="metric-label">Productivity Score</div>
+        <div class="metric-trend" [class.positive]="metrics()!.productivityScore >= 70" [class.negative]="metrics()!.productivityScore < 50">
+          {{ metrics()!.productivityScore >= 70 ? 'Excellent' : metrics()!.productivityScore >= 50 ? 'Good' : 'Needs Improvement' }}
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon">✅</div>
+        <div class="metric-value">{{ metrics()!.completionRate.toFixed(0) }}%</div>
+        <div class="metric-label">Completion Rate</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon">⏰</div>
+        <div class="metric-value">{{ metrics()!.onTimeCompletionRate.toFixed(0) }}%</div>
+        <div class="metric-label">On-Time Completion</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon">⚡</div>
+        <div class="metric-value">{{ metrics()!.taskVelocity.toFixed(1) }}</div>
+        <div class="metric-label">Tasks/Day (7 days)</div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <div class="chart-card">
+        <h3>Productivity Trend</h3>
+        <div class="chart-container">
+          <canvas baseChart
+            [data]="productivityChartData"
+            [options]="lineChartOptions"
+            type="line">
+          </canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3>Task Status Distribution</h3>
+        <div class="chart-container">
+          <canvas baseChart
+            [data]="completionChartData"
+            [options]="chartOptions"
+            type="doughnut">
+          </canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3>Category Performance</h3>
+        <div class="chart-container">
+          <canvas baseChart
+            [data]="categoryChartData"
+            [options]="chartOptions"
+            type="bar">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Insights -->
+    <div class="insights-section">
+      <div class="insight-card">
+        <h3>Peak Productivity Hours</h3>
+        <div class="peak-hours">
+          <span *ngFor="let hour of metrics()!.peakProductivityHours" class="peak-hour-badge">
+            {{ hour }}:00
+          </span>
+        </div>
+        <p class="insight-text">You're most productive during these hours. Schedule important tasks accordingly.</p>
+      </div>
+
+      <div class="insight-card">
+        <h3>Average Task Duration</h3>
+        <div class="duration-value">{{ formatTime(metrics()!.averageTaskDuration) }}</div>
+        <p class="insight-text">Average time spent per completed task.</p>
+      </div>
+
+      <div class="insight-card" [class.warning]="metrics()!.burnoutRisk.riskLevel === 'high'" [class.alert]="metrics()!.burnoutRisk.riskLevel === 'medium'">
+        <h3>Workload Analysis</h3>
+        <div class="risk-level" [class.high]="metrics()!.burnoutRisk.riskLevel === 'high'" [class.medium]="metrics()!.burnoutRisk.riskLevel === 'medium'" [class.low]="metrics()!.burnoutRisk.riskLevel === 'low'">
+          {{ metrics()!.burnoutRisk.riskLevel.toUpperCase() }} RISK
+        </div>
+        <p class="insight-text">{{ metrics()!.burnoutRisk.message }}</p>
+        <ul *ngIf="metrics()!.burnoutRisk.recommendations.length > 0" class="recommendations">
+          <li *ngFor="let rec of metrics()!.burnoutRisk.recommendations">{{ rec }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="category-breakdown">
+      <h3>Category Breakdown</h3>
+      <div class="category-list">
+        <div *ngFor="let category of getCategoryKeys(metrics()!)" class="category-item">
+          <div class="category-name">{{ category }}</div>
+          <div class="category-stats">
+            <span>{{ metrics()!.categoryRates[category].completed }}/{{ metrics()!.categoryRates[category].total }}</span>
+            <span class="category-rate">{{ metrics()!.categoryRates[category].rate.toFixed(0) }}%</span>
+          </div>
+          <div class="category-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="metrics()!.categoryRates[category].rate"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,52 @@
+<div class="kanban-container">
+  <div class="kanban-header">
+    <h1>Kanban Board</h1>
+    <button (click)="loadTasks()" class="btn-refresh">Refresh</button>
+  </div>
+
+  <div *ngIf="loading()" class="loading">
+    <p>Loading tasks...</p>
+  </div>
+
+  <div *ngIf="error()" class="error">
+    <p>{{ error() }}</p>
+  </div>
+
+  <div *ngIf="!loading() && !error()" class="kanban-board">
+    <div *ngFor="let column of tasksByColumn()" class="kanban-column">
+      <div class="column-header">
+        <h2>{{ column.title }}</h2>
+        <span class="column-count">({{ column.tasks.length }})</span>
+      </div>
+      <div class="column-content">
+        <div
+          *ngFor="let task of column.tasks"
+          class="kanban-card"
+          [routerLink]="['/tasks', task.id]"
+          [class.overdue]="isOverdue(task)"
+        >
+          <div class="card-header">
+            <h3 class="card-title">{{ task.title }}</h3>
+            <span class="badge" [ngClass]="getPriorityClass(task.priority)">
+              {{ task.priority }}
+            </span>
+          </div>
+          <p class="card-description">{{ task.description }}</p>
+          <div class="card-meta">
+            <span class="card-category">{{ task.category }}</span>
+            <span class="card-date" [class.overdue]="isOverdue(task)">
+              {{ formatDate(task.dueDate) }}
+            </span>
+          </div>
+          <div *ngIf="task.tags && task.tags.length > 0" class="card-tags">
+            <span *ngFor="let tag of task.tags.slice(0, 3)" class="tag">{{ tag }}</span>
+          </div>
+        </div>
+        <div *ngIf="column.tasks.length === 0" class="empty-column">
+          No tasks
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

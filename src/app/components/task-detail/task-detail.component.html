@@ -1,0 +1,182 @@
+<div class="detail-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    <p>Loading task...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error">
+    <p>{{ error }}</p>
+    <div class="error-actions">
+      <button *ngIf="task" (click)="loadTask(task.id)" class="btn btn-primary">Retry</button>
+      <button (click)="onBack()" class="btn btn-secondary">Back to Tasks</button>
+    </div>
+    <p *ngIf="error.includes('not found') || error.includes('Invalid')" class="redirect-message">
+      Redirecting to task list...
+    </p>
+  </div>
+
+  <!-- Task Detail -->
+  <div *ngIf="task && !loading" class="task-detail">
+    <div class="detail-header">
+      <button (click)="onBack()" class="btn btn-secondary">← Back to Tasks</button>
+      <div class="header-actions">
+        <button (click)="onEdit()" class="btn btn-primary">Edit</button>
+        <button (click)="onDelete()" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+
+    <div class="task-content">
+      <div class="task-title-section">
+        <h1>{{ task.title }}</h1>
+        <div class="badges">
+          <span class="badge" [ngClass]="getPriorityClass(task.priority)">
+            {{ task.priority | titlecase }}
+          </span>
+          <span class="badge" [ngClass]="getStatusClass(task.status)">
+            {{ task.status | titlecase }}
+          </span>
+        </div>
+      </div>
+
+      <div class="task-description">
+        <h3>Description</h3>
+        <p>{{ task.description }}</p>
+      </div>
+
+      <!-- Subtasks -->
+      <div *ngIf="task.subtasks && task.subtasks.length > 0" class="subtasks-section">
+        <app-subtask-list
+          [subtasks]="task.subtasks"
+          [canEdit]="true"
+          (addSubtask)="onAddSubtask($event)"
+          (toggleSubtask)="onToggleSubtask($event)"
+          (deleteSubtask)="onDeleteSubtask($event)"
+        ></app-subtask-list>
+      </div>
+      <div *ngIf="!task.subtasks || task.subtasks.length === 0" class="subtasks-section">
+        <app-subtask-list
+          [subtasks]="[]"
+          [canEdit]="true"
+          (addSubtask)="onAddSubtask($event)"
+          (toggleSubtask)="onToggleSubtask($event)"
+          (deleteSubtask)="onDeleteSubtask($event)"
+        ></app-subtask-list>
+      </div>
+
+      <!-- Dependencies Section -->
+      <div class="dependencies-section">
+        <h3>Dependencies</h3>
+        
+        <!-- Blocking Tasks (Tasks this depends on) -->
+        <div *ngIf="blockingTasks.length > 0" class="dependency-group">
+          <h4>Depends On:</h4>
+          <div class="dependency-list">
+            <div *ngFor="let depTask of blockingTasks" class="dependency-item">
+              <a [routerLink]="['/tasks', depTask.id]" class="dependency-link">
+                {{ depTask.title }}
+              </a>
+              <span class="dependency-status" [ngClass]="'status-' + depTask.status">
+                {{ depTask.status }}
+              </span>
+              <button
+                (click)="removeDependency(depTask.id)"
+                class="btn-remove-dependency"
+                title="Remove dependency"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dependent Tasks (Tasks that depend on this) -->
+        <div *ngIf="dependentTasks.length > 0" class="dependency-group">
+          <h4>Blocked By This Task:</h4>
+          <div class="dependency-list">
+            <div *ngFor="let depTask of dependentTasks" class="dependency-item">
+              <a [routerLink]="['/tasks', depTask.id]" class="dependency-link">
+                {{ depTask.title }}
+              </a>
+              <span class="dependency-status" [ngClass]="'status-' + depTask.status">
+                {{ depTask.status }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Dependency -->
+        <div class="add-dependency">
+          <select
+            #depSelect
+            class="dependency-select"
+            (change)="addDependency(+depSelect.value); depSelect.value = ''"
+          >
+            <option value="">Add dependency...</option>
+            <option *ngFor="let task of getAvailableTasksForDependency()" [value]="task.id">
+              {{ task.title }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Warning if cannot complete -->
+        <div *ngIf="!canComplete() && blockingTasks.length > 0" class="dependency-warning">
+          ⚠️ Cannot complete this task. Complete blocking tasks first:
+          <ul>
+            <li *ngFor="let task of getIncompleteBlockingTasks()">
+              {{ task.title }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task-info-grid">
+        <div class="info-item">
+          <span class="info-label">Category</span>
+          <span class="info-value">{{ task.category }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Due Date</span>
+          <span class="info-value" [class.overdue]="isOverdue()">
+            {{ formatDate(task.dueDate) }}
+            <span *ngIf="isOverdue()" class="overdue-badge">Overdue</span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Created</span>
+          <span class="info-value">{{ formatDateTime(task.createdAt) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Last Updated</span>
+          <span class="info-value">{{ formatDateTime(task.updatedAt) }}</span>
+        </div>
+      </div>
+
+      <div class="status-section">
+        <h3>Status</h3>
+        <button (click)="toggleStatus()" class="btn btn-status" [ngClass]="getStatusClass(task.status)">
+          {{ task.status === 'completed' ? 'Mark as Pending' : 
+             task.status === 'pending' ? 'Mark as In Progress' : 
+             'Mark as Completed' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Confirm Delete</h2>
+      <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button (click)="confirmDelete()" class="btn btn-danger" [disabled]="deleting">
+          {{ deleting ? 'Deleting...' : 'Delete' }}
+        </button>
+        <button (click)="cancelDelete()" class="btn btn-secondary" [disabled]="deleting">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
