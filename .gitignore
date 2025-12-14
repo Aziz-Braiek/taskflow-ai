@@ -50,5 +50,6 @@ Thumbs.db
 *.tsbuildinfo
 
 # PWA files (generated)
-ngsw-config.json
+# Note: ngsw-config.json should be committed (it's the config file)
+# Only ngsw.json is generated and should be ignored
 ngsw.json
